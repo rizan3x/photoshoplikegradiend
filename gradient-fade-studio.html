@@ -1,0 +1,174 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Gradient Fade Studio</title>
+<style>
+:root{--bg:#18191c;--p:#232428;--p2:#2c2d32;--bd:#393a40;--tx:#e8e8ea;--mu:#9b9ca4;--ac:#4c9aff;color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html,body{height:100%;margin:0}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--tx);font:13px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;gap:6px;align-items:center;padding:8px 12px;background:var(--p);border-bottom:1px solid var(--bd);flex-wrap:wrap}
+header b{font-size:14px;margin-right:8px;letter-spacing:.3px}.sp{flex:1}.sep{width:1px;height:22px;background:var(--bd);margin:0 4px}
+button,select,input[type=number]{background:var(--p2);color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:5px 10px;font:inherit;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--ac)}button:disabled{opacity:.4;cursor:default}button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+button.pri{background:var(--ac);border-color:var(--ac);color:#fff}
+main{flex:1;display:grid;grid-template-columns:220px 1fr 280px;min-height:0}
+aside{background:var(--p);overflow:auto;padding:10px;border-right:1px solid var(--bd)}aside.r{border-left:1px solid var(--bd);border-right:0}
+h4{margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--mu)}h4:first-child{margin-top:0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:6px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.g4 button{padding:6px 0;font-size:16px}
+#vp{position:relative;overflow:hidden;background:#101113;touch-action:none}#vp.pan{cursor:grab}#vp.draw{cursor:crosshair}
+#stage{position:absolute;left:0;top:0;background:conic-gradient(#555 25%,#888 0 50%,#555 0 75%,#888 0) 0 0/16px 16px;box-shadow:0 0 0 1px #000,0 8px 30px #0008}
+#cv{display:block}#ov{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}#ov circle[data-h]{pointer-events:all;cursor:move}
+#empty{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;color:var(--mu);border:2px dashed var(--bd);margin:20px;border-radius:12px;text-align:center;padding:20px}
+#empty.hide{display:none}body.drag #empty{border-color:var(--ac);color:var(--ac)}
+.row{margin:8px 0}.row label{display:flex;justify-content:space-between;color:var(--mu);font-size:12px}.row input[type=range]{width:100%;accent-color:var(--ac)}
+.stop{display:grid;grid-template-columns:1fr 1fr 24px;gap:4px;align-items:center;margin:4px 0}.stop input{width:100%;accent-color:var(--ac)}.stop button{padding:0 6px}
+.ly{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border:1px solid var(--bd);border-radius:6px;margin:4px 0;cursor:pointer}.ly.on{border-color:var(--ac);background:#4c9aff22}.ly button{padding:0 6px}
+#mp{width:100%;border:1px solid var(--bd);border-radius:6px;background:#000;display:block}
+#exp{position:fixed;right:12px;top:52px;width:260px;background:var(--p);border:1px solid var(--bd);border-radius:10px;padding:12px;z-index:20;box-shadow:0 10px 40px #000a;display:none}#exp.show{display:block}
+#exp .row{display:flex;gap:6px;align-items:center;justify-content:space-between}#exp input[type=number]{width:80px}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#000c;padding:8px 14px;border-radius:8px;display:none;z-index:30}
+small{color:var(--mu)}
+@media(max-width:900px){html{height:auto}body{overflow:auto;height:auto;min-height:100%}main{display:flex;flex-direction:column}#vp{order:-1;flex:none;height:46vh;height:46dvh;min-height:240px;position:sticky;top:0;z-index:5;border-bottom:1px solid var(--bd)}aside,aside.r{border:0;border-top:1px solid var(--bd);overflow:visible;flex:none}header{flex-wrap:nowrap;overflow-x:auto;position:sticky;top:0;z-index:6}header button,header span{white-space:nowrap;flex:none}#vp{top:46px}#exp{left:8px;right:8px;width:auto;top:56px}#empty{margin:10px}}
+@media(pointer:coarse){button,select{min-height:40px}input[type=range]{height:30px}input[type=number],select{font-size:16px}.g4 button{min-height:44px}}
+</style></head><body>
+<header><b>◐ Gradient Fade Studio</b>
+<button id="up" title="Upload / replace image">Upload</button>
+<button id="undo" title="Undo (Ctrl+Z)">↶ Undo</button><button id="redo" title="Redo (Ctrl+Shift+Z)">↷ Redo</button>
+<button id="reset" title="Reset gradient">Reset</button><button id="ba" title="Toggle before / after (B)">Before / After</button>
+<span class="sep"></span><button id="zo" title="Zoom out">−</button><span id="zv">100%</span><button id="zi" title="Zoom in">+</button><button id="z1" title="Actual size">1:1</button><button id="fit" title="Fit to screen">Fit</button>
+<span class="sp"></span><button id="exb" class="pri" title="Export image">Export ▾</button></header>
+<input type="file" id="file" accept="image/png,image/jpeg,image/webp" hidden>
+<div id="exp">
+<div class="row"><label>Format</label><select id="fmt"><option value="image/png">PNG (transparent)</option><option value="image/webp">WEBP (transparent)</option><option value="image/jpeg">JPG</option></select></div>
+<div class="row"><label>JPG background</label><input type="color" id="bg" value="#ffffff"></div>
+<div class="row"><label>Quality</label><input type="range" id="q" min="50" max="100" value="95" style="width:110px"></div>
+<div class="row"><label>Width</label><input type="number" id="ew" min="1"></div>
+<div class="row"><label>Height</label><input type="number" id="eh" min="1"></div>
+<div class="row"><label><input type="checkbox" id="lock" checked> Keep aspect</label><button id="orig">Original</button></div>
+<button id="dl" class="pri" style="width:100%;margin-top:8px">Download</button></div>
+<main>
+<aside><h4>Image</h4><button id="up2" style="width:100%">Upload / Replace…</button>
+<h4>Presets</h4><div class="g2" id="pre"></div>
+<h4>Direction</h4><div class="g4" id="dir"></div>
+<h4>Type</h4><div class="g2"><button id="tl">Linear</button><button id="tr">Radial</button></div>
+<h4>Custom</h4><button id="dw" style="width:100%" title="Drag on the canvas to draw a gradient">✎ Draw gradient</button>
+<h4>Help</h4><small>Drag the green (start, visible) and red (end, transparent) handles. Pinch or wheel = zoom, drag empty canvas (or Space+drag) = pan, B = before/after. Layers multiply together.</small></aside>
+<div id="vp"><div id="stage"><canvas id="cv"></canvas><svg id="ov"></svg></div>
+<div id="empty"><div style="font-size:42px">🖼</div><div><b>Drop an image here</b><br>PNG, JPG or WEBP</div><button id="up3" class="pri">Browse…</button></div></div>
+<aside class="r"><h4>Gradient settings</h4><div id="sl"></div>
+<div class="row"><label><span><input type="checkbox" id="rev"> Reverse gradient</span></label></div>
+<h4>Gradient stops (position · opacity)</h4><div id="st"></div><button id="as" style="width:100%">+ Add stop</button>
+<h4>Layers (combined)</h4><div id="ly"></div><button id="al" style="width:100%">+ Add gradient layer</button>
+<h4>Layer mask preview</h4><canvas id="mp"></canvas></aside></main>
+<div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),cv=$('#cv'),ctx=cv.getContext('2d',{willReadFrequently:true}),vp=$('#vp'),stage=$('#stage'),ov=$('#ov');
+let img=null,W=0,H=0,S=1,pw=0,ph=0,src=null,out=null,layers=[],act=0,zoom=1,pan={x:0,y:0},hist=[],hi=-1,before=false,draw=false,space=false,dirty=false,drag=null;
+const toast=m=>{const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',3000)};
+const DS=()=>[{p:0,a:1},{p:1,a:0}];
+function dirPts(a,f,t){const r=a*Math.PI/180,dx=Math.cos(r),dy=Math.sin(r),h=(Math.abs(W*dx)+Math.abs(H*dy))/2,P=u=>[W/2+dx*h*(2*u-1),H/2+dy*h*(2*u-1)],A=P(f),B=P(t);return{x1:A[0],y1:A[1],x2:B[0],y2:B[1]}}
+function mk(o){const D=Math.hypot(W,H)/2,b=o.rad?{type:'radial',x1:W/2,y1:H/2,x2:W/2+o.k*D,y2:H/2}:{type:'linear',...dirPts(o.a,o.f,o.t)};
+return{...b,str:o.s??1,sm:o.sm??0,mid:.5,off:0,rev:o.rev??false,stops:o.stops?o.stops.map(s=>({...s})):DS()}}
+const PRE={'Fade Left':[{a:180,f:.3,t:1}],'Fade Right':[{a:0,f:.3,t:1}],'Fade Top':[{a:270,f:.3,t:1}],'Fade Bottom':[{a:90,f:.3,t:1}],
+'Soft Center Fade':[{rad:1,k:.9,sm:.8,stops:[{p:0,a:1},{p:.5,a:.7},{p:1,a:0}]}],'Radial Fade':[{rad:1,k:1}],'Bottom Shadow Fade':[{a:90,f:.4,t:1,s:.7,sm:.6}],
+'Cinematic Fade':[{a:0,f:.75,t:1,sm:1},{a:180,f:.75,t:1,sm:1}],'Diagonal Fade':[{a:45,f:.2,t:1,sm:.5}],'Full Transparent Fade':[{a:0,f:0,t:1}]};
+const DIRS=[['→','Left to Right (visible left)',0],['←','Right to Left',180],['↓','Top to Bottom',90],['↑','Bottom to Top',270],['↘','Diagonal TL→BR',45],['↙','Diagonal TR→BL',135],['◎','Radial: center to outside','r0'],['◉','Reverse radial: outside to center','r1']];
+$('#pre').innerHTML=Object.keys(PRE).map(k=>`<button data-p="${k}" title="Apply preset (fully editable afterwards)">${k}</button>`).join('');
+$('#dir').innerHTML=DIRS.map((d,i)=>`<button data-d="${i}" title="${d[1]}">${d[0]}</button>`).join('');
+const L=()=>layers[act],HR=matchMedia('(pointer:coarse)').matches?15:8;
+const SL=[['ang','Angle (°)',0,360,l=>Math.round((Math.atan2(l.y2-l.y1,l.x2-l.x1)*180/Math.PI+360)%360),(l,v)=>{const n=Math.hypot(l.x2-l.x1,l.y2-l.y1),r=v*Math.PI/180;l.x2=l.x1+n*Math.cos(r);l.y2=l.y1+n*Math.sin(r)}],
+['len','Length (% of diagonal)',1,300,l=>Math.round(Math.hypot(l.x2-l.x1,l.y2-l.y1)/Math.hypot(W,H)*100),(l,v)=>{const n=Math.hypot(l.x2-l.x1,l.y2-l.y1)||1,k=v/100*Math.hypot(W,H)/n;l.x2=l.x1+(l.x2-l.x1)*k;l.y2=l.y1+(l.y2-l.y1)*k}],
+['str','Transparency amount (%)',0,100,l=>Math.round(l.str*100),(l,v)=>l.str=v/100],
+['off','Fade position (%)',-100,100,l=>Math.round(l.off*100),(l,v)=>l.off=v/100],
+['mid','Midpoint (%)',5,95,l=>Math.round(l.mid*100),(l,v)=>l.mid=v/100],
+['sm','Smoothness (%)',0,100,l=>Math.round(l.sm*100),(l,v)=>l.sm=v/100]];
+$('#sl').innerHTML=SL.map(s=>`<div class="row"><label>${s[1]}<span id="v_${s[0]}"></span></label><input type="range" id="s_${s[0]}" min="${s[2]}" max="${s[3]}" step="1"></div>`).join('');
+SL.forEach(s=>{const e=$('#s_'+s[0]);e.oninput=()=>{if(!img)return;s[5](L(),+e.value);vals();req()};e.onchange=()=>img&&push()});
+$('#rev').onchange=e=>{if(!img)return;L().rev=e.target.checked;req();push()};
+function vals(){const l=L();if(!l)return;SL.forEach(s=>{const v=s[4](l);$('#s_'+s[0]).value=v;$('#v_'+s[0]).textContent=v});$('#rev').checked=l.rev;$('#tl').classList.toggle('on',l.type=='linear');$('#tr').classList.toggle('on',l.type=='radial')}
+function sync(){if(!layers.length)return;vals();$('#st').innerHTML=L().stops.map((s,i)=>`<div class="stop"><input type="range" min="0" max="100" value="${Math.round(s.p*100)}" data-i="${i}" data-k="p" title="Position ${Math.round(s.p*100)}%"><input type="range" min="0" max="100" value="${Math.round(s.a*100)}" data-i="${i}" data-k="a" title="Opacity ${Math.round(s.a*100)}%"><button data-x="${i}" title="Remove stop">×</button></div>`).join('');
+$('#ly').innerHTML=layers.map((l,i)=>`<div class="ly ${i==act?'on':''}" data-i="${i}">Layer ${i+1} · ${l.type}<button data-x="${i}" title="Delete layer">×</button></div>`).join('')}
+$('#st').oninput=e=>{const t=e.target;if(!t.dataset.k)return;L().stops[t.dataset.i][t.dataset.k]=t.value/100;t.title=t.value+'%';req()};
+$('#st').onchange=()=>{L().stops.sort((a,b)=>a.p-b.p);sync();push()};
+$('#st').onclick=e=>{const x=e.target.dataset.x;if(x==null||L().stops.length<=2)return;L().stops.splice(+x,1);sync();req();push()};
+$('#as').onclick=()=>{if(!img)return;const st=[...L().stops].sort((a,b)=>a.p-b.p);L().stops.push({p:.5,a:at(st,.5)});L().stops.sort((a,b)=>a.p-b.p);sync();req();push()};
+$('#ly').onclick=e=>{const x=e.target.dataset.x;if(x!=null){if(layers.length>1){layers.splice(+x,1);act=Math.min(act,layers.length-1);sync();req();push()}return}const i=e.target.closest('.ly')?.dataset.i;if(i!=null){act=+i;sync();ovl()}};
+$('#al').onclick=()=>{if(!img)return;layers.push(mk({a:0,f:0,t:1}));act=layers.length-1;sync();req();push()};
+$('#pre').onclick=e=>{const k=e.target.dataset.p;if(!k||!img)return;layers=PRE[k].map(mk);act=0;sync();req();push()};
+$('#dir').onclick=e=>{const i=e.target.dataset.d;if(i==null||!img)return;const d=DIRS[i][2],l=L();
+if(typeof d=='number')Object.assign(l,dirPts(d,0,1),{type:'linear',rev:false});else Object.assign(l,{type:'radial',x1:W/2,y1:H/2,x2:W/2+Math.hypot(W,H)/2,y2:H/2,rev:d=='r1'});sync();req();push()};
+$('#tl').onclick=()=>{if(img){L().type='linear';sync();req();push()}};$('#tr').onclick=()=>{if(img){L().type='radial';sync();req();push()}};
+$('#dw').onclick=()=>{draw=!draw;$('#dw').classList.toggle('on',draw);vp.classList.toggle('draw',draw)};
+const resetG=()=>{if(!img)return;layers=[mk(PRE['Fade Right'][0])];act=0;sync();req();push()};$('#reset').onclick=resetG;
+/* history */
+const snap=()=>JSON.stringify({layers,act});
+function push(){hist=hist.slice(0,hi+1);hist.push(snap());if(hist.length>100)hist.shift();hi=hist.length-1;btns()}
+function load(j){const o=JSON.parse(j);layers=o.layers;act=o.act;sync();req();btns()}
+const undo=()=>{if(hi>0)load(hist[--hi])},redo=()=>{if(hi<hist.length-1)load(hist[++hi])};
+function btns(){$('#undo').disabled=hi<1;$('#redo').disabled=hi>=hist.length-1}$('#undo').onclick=undo;$('#redo').onclick=redo;btns();
+/* mask engine */
+const at=(st,t)=>{if(t<=st[0].p)return st[0].a;for(let i=1;i<st.length;i++)if(t<=st[i].p){const q=st[i-1];return q.a+(st[i].a-q.a)*(t-q.p)/((st[i].p-q.p)||1e-6)}return st[st.length-1].a};
+function lut(l){const N=1024,a=new Float32Array(N),st=[...l.stops].sort((u,v)=>u.p-v.p),ex=Math.log(.5)/Math.log(l.mid);
+for(let i=0;i<N;i++){let t=i/(N-1);if(l.rev)t=1-t;t=t*(1-l.sm)+t*t*(3-2*t)*l.sm;t=Math.pow(t,ex);a[i]=1-l.str*(1-at(st,t))}return a}
+function computeMask(w,h,s){const m=new Float32Array(w*h).fill(1);
+for(const l of layers){const T=lut(l),x1=l.x1*s,y1=l.y1*s,dx=l.x2*s-x1,dy=l.y2*s-y1,len=Math.hypot(dx,dy)||1,l2=len*len,off=l.off,rad=l.type=='radial',ir=1/len,ax=dx/l2,ay=dy/l2;
+for(let y=0,k=0;y<h;y++){const by=(y-y1)*ay,ry=y-y1;for(let x=0;x<w;x++,k++){let t=rad?Math.hypot(x-x1,ry)*ir:(x-x1)*ax+by;t+=off;m[k]*=T[t<=0?0:t>=1?1023:(t*1023+.5)|0]}}}return m}
+/* image + render */
+function loadFile(f){if(!f||!/^image\/(png|jpe?g|webp)$/.test(f.type))return toast('Please choose a PNG, JPG or WEBP image');
+const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{URL.revokeObjectURL(u);img=im;W=im.naturalWidth;H=im.naturalHeight;S=Math.min(1,1800/Math.max(W,H));pw=Math.round(W*S);ph=Math.round(H*S);
+cv.width=pw;cv.height=ph;ctx.clearRect(0,0,pw,ph);ctx.imageSmoothingQuality='high';ctx.drawImage(im,0,0,pw,ph);src=ctx.getImageData(0,0,pw,ph);out=new ImageData(pw,ph);
+$('#empty').classList.add('hide');$('#ew').value=W;$('#eh').value=H;layers=[mk(PRE['Fade Right'][0])];act=0;hist=[];hi=-1;push();sync();fit();req();toast(`${W}×${H}px loaded`)};
+im.onerror=()=>toast('Could not read that image');im.src=u}
+['#up','#up2','#up3'].forEach(s=>$(s).onclick=()=>$('#file').click());$('#file').onchange=e=>{loadFile(e.target.files[0]);e.target.value=''};
+addEventListener('dragover',e=>{e.preventDefault();document.body.classList.add('drag')});addEventListener('dragleave',()=>document.body.classList.remove('drag'));
+addEventListener('drop',e=>{e.preventDefault();document.body.classList.remove('drag');loadFile(e.dataTransfer.files[0])});
+const req=()=>{if(!dirty){dirty=true;requestAnimationFrame(render)}};
+function render(){dirty=false;if(!img)return;const o=out.data,s=src.data,n=pw*ph;o.set(s);let m=null;
+if(!before){m=computeMask(pw,ph,S);for(let i=0;i<n;i++)o[i*4+3]=(s[i*4+3]*m[i]+.5)|0}
+ctx.putImageData(out,0,0);ovl();
+const mw=Math.min(pw,240),mh=Math.max(1,Math.round(mw*ph/pw)),mp=$('#mp'),mc=mp.getContext('2d'),id=mc.createImageData(mw,mh);mp.width=mw;mp.height=mh;
+for(let y=0;y<mh;y++)for(let x=0;x<mw;x++){const v=m?m[((y*ph/mh)|0)*pw+((x*pw/mw)|0)]*255:255,j=(y*mw+x)*4;id.data[j]=id.data[j+1]=id.data[j+2]=v;id.data[j+3]=255}mc.putImageData(id,0,0)}
+function ovl(){if(!img)return;const l=L(),z=zoom;let h=`<line x1="${l.x1*z}" y1="${l.y1*z}" x2="${l.x2*z}" y2="${l.y2*z}" stroke="#000" stroke-width="4" opacity=".5"/><line x1="${l.x1*z}" y1="${l.y1*z}" x2="${l.x2*z}" y2="${l.y2*z}" stroke="#fff" stroke-width="1.5" stroke-dasharray="6 4"/>`;
+if(l.type=='radial')h+=`<circle cx="${l.x1*z}" cy="${l.y1*z}" r="${Math.hypot(l.x2-l.x1,l.y2-l.y1)*z}" fill="none" stroke="#fff" stroke-dasharray="4 4" opacity=".7"/>`;
+h+=`<circle data-h="1" cx="${l.x1*z}" cy="${l.y1*z}" r="${HR}" fill="#3ddc84" stroke="#fff" stroke-width="2"><title>Start (100% visible)</title></circle><circle data-h="2" cx="${l.x2*z}" cy="${l.y2*z}" r="${HR}" fill="#ff5252" stroke="#fff" stroke-width="2"><title>End (transparent)</title></circle>`;
+ov.innerHTML=h}
+/* view */
+function view(){if(!img)return;stage.style.transform=`translate(${pan.x}px,${pan.y}px)`;cv.style.width=W*zoom+'px';cv.style.height=H*zoom+'px';ov.setAttribute('width',W*zoom);ov.setAttribute('height',H*zoom);$('#zv').textContent=Math.round(zoom*100)+'%';ovl()}
+function setZoom(nz,cx,cy){const r=vp.getBoundingClientRect();cx??=r.width/2;cy??=r.height/2;nz=Math.min(16,Math.max(.02,nz));pan.x=cx-(cx-pan.x)*nz/zoom;pan.y=cy-(cy-pan.y)*nz/zoom;zoom=nz;view()}
+function fit(){if(!img)return;const r=vp.getBoundingClientRect();zoom=Math.min((r.width-40)/W,(r.height-40)/H,4);pan={x:(r.width-W*zoom)/2,y:(r.height-H*zoom)/2};view()}
+$('#fit').onclick=fit;$('#zi').onclick=()=>setZoom(zoom*1.25);$('#zo').onclick=()=>setZoom(zoom/1.25);$('#z1').onclick=()=>setZoom(1);let lw=innerWidth;addEventListener('resize',()=>{if(innerWidth!=lw){lw=innerWidth;fit()}});
+vp.addEventListener('wheel',e=>{if(!img)return;e.preventDefault();const r=vp.getBoundingClientRect();setZoom(zoom*(e.deltaY<0?1.1:1/1.1),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/zoom,(e.clientY-r.top)/zoom]};
+const ptrs=new Map();let pinch=null;const vr=e=>{const r=vp.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+vp.addEventListener('pointerdown',e=>{if(!img||e.target.closest('button'))return;vp.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,vr(e));
+if(ptrs.size==2){if(drag&&drag.m!='pan')push();drag=null;const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)||1,z:zoom,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2,px:pan.x,py:pan.y};return}
+if(ptrs.size>2)return;const nav=space||e.button==1;
+if(!nav&&e.target.dataset.h){drag={m:e.target.dataset.h}}
+else if(!nav&&draw){const[x,y]=pt(e),l=L();l.x1=l.x2=x;l.y1=l.y2=y;drag={m:'2'}}
+else drag={m:'pan',x:e.clientX-pan.x,y:e.clientY-pan.y}});
+vp.addEventListener('pointermove',e=>{if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,vr(e));
+if(pinch&&ptrs.size==2){const[a,b]=[...ptrs.values()],d=Math.hypot(a.x-b.x,a.y-b.y)||1,mx=(a.x+b.x)/2,my=(a.y+b.y)/2,nz=Math.min(16,Math.max(.02,pinch.z*d/pinch.d)),ix=(pinch.cx-pinch.px)/pinch.z,iy=(pinch.cy-pinch.py)/pinch.z;zoom=nz;pan.x=mx-ix*nz;pan.y=my-iy*nz;return view()}
+if(!drag)return;if(drag.m=='pan'){pan.x=e.clientX-drag.x;pan.y=e.clientY-drag.y;return view()}
+const[x,y]=pt(e),l=L();if(drag.m=='1'){l.x1=x;l.y1=y}else{l.x2=x;l.y2=y}vals();req()});
+const pend=e=>{ptrs.delete(e.pointerId);if(pinch){if(ptrs.size<2)pinch=null;return}if(drag&&drag.m!='pan')push();drag=null};
+vp.addEventListener('pointerup',pend);vp.addEventListener('pointercancel',pend);
+/* keys */
+addEventListener('keydown',e=>{const t=e.target.tagName,typing=t=='INPUT'&&e.target.type!='range'||t=='SELECT';const k=e.key.toLowerCase();
+if((e.ctrlKey||e.metaKey)&&k=='z'){e.preventDefault();e.shiftKey?redo():undo()}else if((e.ctrlKey||e.metaKey)&&k=='y'){e.preventDefault();redo()}
+else if(e.code=='Space'&&!typing&&t!='BUTTON'){e.preventDefault();space=true;vp.classList.add('pan')}
+else if(k=='b'&&!typing&&!e.ctrlKey){$('#ba').click()}});
+addEventListener('keyup',e=>{if(e.code=='Space'){space=false;vp.classList.remove('pan')}});
+$('#ba').onclick=()=>{before=!before;$('#ba').classList.toggle('on',before);req()};
+/* export */
+$('#exb').onclick=()=>$('#exp').classList.toggle('show');
+$('#ew').oninput=()=>{if($('#lock').checked&&W)$('#eh').value=Math.max(1,Math.round($('#ew').value*H/W))};
+$('#eh').oninput=()=>{if($('#lock').checked&&H)$('#ew').value=Math.max(1,Math.round($('#eh').value*W/H))};
+$('#orig').onclick=()=>{$('#ew').value=W;$('#eh').value=H};
+$('#dl').onclick=()=>{if(!img)return toast('Upload an image first');const ow=Math.max(1,+$('#ew').value|0),oh=Math.max(1,+$('#eh').value|0),mime=$('#fmt').value;
+if(ow*oh>120e6)return toast('Output too large (max ~120 MP)');toast('Rendering…');
+setTimeout(()=>{try{let c=document.createElement('canvas');c.width=ow;c.height=oh;const x=c.getContext('2d',{willReadFrequently:true});x.imageSmoothingEnabled=true;x.imageSmoothingQuality='high';x.drawImage(img,0,0,ow,oh);
+const d=x.getImageData(0,0,ow,oh),m=computeMask(ow,oh,ow/W),a=d.data;for(let i=0,n=ow*oh;i<n;i++)a[i*4+3]=(a[i*4+3]*m[i]+.5)|0;x.putImageData(d,0,0);
+if(mime=='image/jpeg'){const c2=document.createElement('canvas');c2.width=ow;c2.height=oh;const x2=c2.getContext('2d');x2.fillStyle=$('#bg').value;x2.fillRect(0,0,ow,oh);x2.drawImage(c,0,0);c=c2}
+c.toBlob(b=>{if(!b)return toast('Export failed (image too large for this browser)');let ext={'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}[b.type]||'png';
+const note=b.type!=mime?'This browser cannot encode that format; using '+ext.toUpperCase()+'. ':'',fn='gradient-fade.'+ext,done=()=>{toast(note+'Exported '+ow+'×'+oh+' '+ext.toUpperCase());c.width=c.height=0};
+(window.claude&&claude.use?claude.use('downloads'):Promise.resolve(null)).then(dl=>{if(dl)return dl.save({filename:fn,data:b}).then(done,er=>toast(er&&er.code=='declined'?'Save cancelled':'Save failed: '+((er&&er.message)||er)));
+const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=fn;a.click();setTimeout(()=>URL.revokeObjectURL(u),4000);done()})},mime,+$('#q').value/100)}catch(err){toast('Export error: '+err.message)}},30)};
+sync();
+</script></body></html>
